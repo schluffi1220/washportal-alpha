@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Wasch-Portal</title>
+  <style>
+    :root{
+      --free:#22c55e; --busy:#3b82f6; --defect:#ff00aa;
+      --bg:#fff; --text:#111; --muted:#666; --border:#e6e6e6; --card:#fff; --chip:#f5f5f5;
+    }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:16px; max-width:980px; background:var(--bg); color:var(--text)}
+    h1{margin:0 0 8px}
+    .muted{color:var(--muted); font-size:13px}
+    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end}
+    .card{border:1px solid var(--border); border-radius:14px; padding:12px; margin:10px 0; background:var(--card)}
+    label{display:block; font-size:14px; margin:6px 0 2px}
+    input,button,textarea,select{font-size:16px; padding:10px; border-radius:10px; border:1px solid #bbb}
+    button{cursor:pointer}
+    .ok{color:#0a7} .err{color:#c00}
+    .sep{height:1px;background:#eee;margin:10px 0}
+    .dot{width:14px;height:14px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:middle}
+    .dot.free{background:var(--free)} .dot.busy{background:var(--busy)} .dot.defect{background:var(--defect)}
+    .small{font-size:13px}
+    .grid{display:flex; flex-direction:column; gap:8px}
+    .item{border:1px solid var(--border); border-radius:14px; padding:10px}
+    .itemHead{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
+    body.ui-tiles .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px}
+    body.ui-hc .dot{width:18px;height:18px; box-shadow:0 0 0 2px #1112}
+    body.ui-hc .dot.defect{box-shadow:0 0 0 3px #000}
+    .chip{display:inline-flex; align-items:center; gap:8px; background:var(--chip); border:1px solid var(--border);
+      border-radius:999px; padding:6px 10px; font-size:13px;}
+    .btnSmall{padding:8px 10px; font-size:14px}
+    .btnMachine{background:#fff; border:1px solid #aaa}
+    .btnMachine[disabled]{opacity:.5; cursor:not-allowed}
+    .danger{border-color:#c00; color:#c00}
+  </style>
+</head>
+<body>
+  <h1>Wasch-Portal</h1>
+  <div class="muted" id="buildInfo"></div>
+
+  <div class="card" id="newsCard" style="display:none">
+    <b>Info</b>
+    <div id="newsText" style="margin-top:6px"></div>
+  </div>
+
+  <div class="card">
+    <b>1) Zugang</b>
+    <div class="row">
+      <div>
+        <label>Zimmernummer (0–400)</label>
+        <input id="room" inputmode="numeric" placeholder="z.B. 316" autocomplete="off"/>
+      </div>
+      <div>
+        <label>PIN (4-stellig)</label>
+        <input id="pin" type="password" inputmode="numeric" placeholder="••••"
+               autocomplete="new-password" autocapitalize="off" spellcheck="false"/>
+      </div>
+      <div>
+        <label>Stations-PIN</label>
+        <input id="stationPin" type="password" placeholder="••••"
+               autocomplete="one-time-code" autocapitalize="off" spellcheck="false"/>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin:0">
+        <input type="checkbox" id="showPins" onchange="togglePins()"/> PIN anzeigen
+      </label>
+    </div>
+    <div style="margin-top:10px" class="row">
+      <button onclick="refreshAll()">Aktualisieren</button>
+      <span id="msg" class="muted"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <b>2) Maschinenübersicht</b>
+    <div class="muted">Grün: frei · Blau: belegt · Magenta: defekt</div>
+    <div class="sep"></div>
+    <div id="machines" class="grid"></div>
+  </div>
+
+  <div class="card">
+    <b>3) Slot auswählen</b>
+    <div class="muted">Slot wählen → freie Maschinen als Buttons anklickbar.</div>
+    <div class="sep"></div>
+
+    <div class="row">
+      <div style="min-width:360px">
+        <label>Wasch-Slot</label>
+        <select id="slotSelect" onchange="renderSlotMachines()">
+          <option value="">Bitte auswählen…</option>
+        </select>
+      </div>
+      <div class="chip" id="slotInfo" style="display:none"></div>
+    </div>
+
+    <div style="margin-top:10px" id="slotMachines"></div>
+  </div>
+
+  <div class="card">
+    <b>4) Meine Buchungen</b>
+    <div class="sep"></div>
+    <div id="myBookings" class="grid"></div>
+  </div>
+
+  <div class="card">
+    <b>Admin</b>
+    <div class="row">
+      <div>
+        <label>Admin-Passwort</label>
+        <input id="adminPw" type="password" placeholder="Admin Passwort" autocomplete="current-password"/>
+      </div>
+      <div><button onclick="adminLogin()">Login</button></div>
+      <span id="adminMsg" class="muted"></span>
+    </div>
+
+    <div id="adminArea" style="display:none; margin-top:12px">
+      <div class="sep"></div>
+
+      <b>Stations-PIN</b>
+      <div class="row" style="margin-top:8px">
+        <div>
+          <label>Stations-PIN neu setzen</label>
+          <input id="adminStationPin" type="password" placeholder="z.B. 1111" autocomplete="new-password"/>
+        </div>
+        <button onclick="adminSetStationPin()">Speichern</button>
+      </div>
+
+      <div class="sep"></div>
+
+      <b>UI global</b>
+      <div class="row" style="margin-top:8px">
+        <div>
+          <label>Layout</label>
+          <select id="uiLayout">
+            <option value="tiles">Kacheln (alt)</option>
+            <option value="list">Liste</option>
+          </select>
+        </div>
+        <div>
+          <label>Design</label>
+          <select id="uiTheme">
+            <option value="standard">Standard</option>
+            <option value="highcontrast">High-Contrast</option>
+          </select>
+        </div>
+        <button onclick="adminSaveUI()">Speichern</button>
+      </div>
+
+      <div class="sep"></div>
+
+      <b>News</b>
+      <div class="row" style="margin-top:8px">
+        <input id="adminNewsText" style="min-width:340px" placeholder="Text für Users"/>
+        <label style="display:flex;align-items:center;gap:8px;margin:0">
+          <input type="checkbox" id="adminNewsEnabled"/> aktiv
+        </label>
+        <button onclick="adminSaveNews()">Speichern</button>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <span id="adminSaveMsg" class="muted"></span>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const API_BASE = "https://snowy-breeze-54f8.schluffi1220.workers.dev";
+
+  function apiUrl(path){ return API_BASE.replace(/\/+$/,"") + "/" + String(path||"").replace(/^\/+/,""); }
+  async function jget(path){
+    const r = await fetch(apiUrl(path), { cache:"no-store" });
+    const t = await r.text();
+    try { return JSON.parse(t); } catch { return { ok:false, error:"bad_json", raw:t }; }
+  }
+  async function jpost(path, body){
+    const r = await fetch(apiUrl(path), {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(body||{})
+    });
+    const t = await r.text();
+    try { return JSON.parse(t); } catch { return { ok:false, error:"bad_json", raw:t }; }
+  }
+
+  function val(id){ return document.getElementById(id).value.trim(); }
+  function setMsg(id, txt, ok=true){
+    const el = document.getElementById(id);
+    el.textContent = txt;
+    el.className = ok ? "muted ok" : "muted err";
+  }
+
+  function togglePins(){
+    const show = document.getElementById("showPins").checked;
+    document.getElementById("pin").type = show ? "text" : "password";
+    document.getElementById("stationPin").type = show ? "text" : "password";
+  }
+
+  function fmt(ms){
+    const d = new Date(ms);
+    const dd = String(d.getDate()).padStart(2,"0");
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const yy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mi = String(d.getMinutes()).padStart(2,"0");
+    return `${dd}.${mm}.${yy} ${hh}:${mi}`;
+  }
+
+  let STATUS=null, SLOTS=[];
+
+  function applyUi(cfg){
+    document.body.classList.toggle("ui-tiles", cfg?.uiLayout === "tiles");
+    document.body.classList.toggle("ui-hc", cfg?.uiTheme === "highcontrast");
+  }
+
+  async function refreshAll(){
+    setMsg("msg","Lade…",true);
+
+    const st = await jget("/api/status");
+    if (!st.ok){ setMsg("msg","Fehler: "+(st.message||st.error),false); return; }
+    STATUS = st;
+    document.getElementById("buildInfo").textContent = `build: ${st.build}`;
+    applyUi(st.config);
+
+    if (st.newsText && st.newsText.trim()){
+      document.getElementById("newsCard").style.display="block";
+      document.getElementById("newsText").textContent = st.newsText;
+    } else {
+      document.getElementById("newsCard").style.display="none";
+    }
+
+    await loadSlots();
+    renderMachines();
+    await loadMyBookings();
+    setMsg("msg","OK",true);
+  }
+
+  function renderMachines(){
+    const el=document.getElementById("machines");
+    el.innerHTML="";
+    const machines=STATUS?.machines||[];
+    const bookings=STATUS?.bookings||[];
+    const now=Date.now();
+
+    function statusFor(m){
+      if (m.defect) return { cls:"defect", label:"defekt" };
+      const active = bookings.find(b => b.type===m.type && b.machine===m.machine && b.status==="booked" && b.start<=now && b.end>now);
+      if (active) return { cls:"busy", label:`belegt bis ${fmt(active.end)} (Zimmer ${active.room})` };
+      const next = bookings.find(b => b.type===m.type && b.machine===m.machine && b.status==="booked" && b.start>now);
+      if (next) return { cls:"busy", label:`gebucht ab ${fmt(next.start)} (Zimmer ${next.room})` };
+      return { cls:"free", label:"frei" };
+    }
+
+    for (const m of machines){
+      if (m.type!=="washer") continue;
+      const s=statusFor(m);
+      const div=document.createElement("div");
+      div.className="item";
+      div.innerHTML = `
+        <div class="itemHead">
+          <div>
+            <span class="dot ${s.cls}"></span><b>Waschmaschine ${m.machine}</b>
+            <div class="muted small">${s.label}</div>
+          </div>
+        </div>
+      `;
+      el.appendChild(div);
+    }
+  }
+
+  async function loadSlots(){
+    const stationPin = val("stationPin");
+    const res = await jpost("/api/washer/free-slots", { stationPin });
+
+    const sel=document.getElementById("slotSelect");
+    sel.innerHTML = `<option value="">Bitte auswählen…</option>`;
+    SLOTS = [];
+
+    if (!res.ok){
+      setMsg("msg","Slots: "+(res.message||res.error), false);
+      return;
+    }
+
+    SLOTS = res.slots || [];
+    for (const s of SLOTS){
+      const freeText = s.disabled ? "belegt" : `frei: ${(s.freeMachines||[]).join(",")}`;
+      const opt=document.createElement("option");
+      opt.value=String(s.start);
+      opt.textContent = `${s.label} (${freeText})`;
+      if (s.disabled) opt.disabled = true;
+      sel.appendChild(opt);
+    }
+
+    renderSlotMachines();
+  }
+
+  function renderSlotMachines(){
+    const start = Number(document.getElementById("slotSelect").value);
+    const info = document.getElementById("slotInfo");
+    const box = document.getElementById("slotMachines");
+    info.style.display="none";
+    box.innerHTML="";
+
+    if (!start) return;
+    const slot = SLOTS.find(s => s.start === start);
+    if (!slot) return;
+
+    info.style.display="inline-flex";
+    info.textContent = `${slot.label} | frei: ${slot.freeCount}/${slot.totalCount}`;
+
+    const free = slot.freeMachines || [];
+    if (!free.length){
+      box.innerHTML = `<div class="muted">Keine freie Maschine.</div>`;
+      return;
+    }
+
+    const wrap=document.createElement("div");
+    wrap.className="row";
+
+    const btnAuto=document.createElement("button");
+    btnAuto.className="btnMachine btnSmall";
+    btnAuto.textContent = `Auto buchen (Maschine ${free[0]})`;
+    btnAuto.onclick = () => bookWasher(start, null);
+    wrap.appendChild(btnAuto);
+
+    for (const m of free){
+      const b=document.createElement("button");
+      b.className="btnMachine btnSmall";
+      b.textContent = `Maschine ${m} buchen`;
+      b.onclick = () => bookWasher(start, m);
+      wrap.appendChild(b);
+    }
+    box.appendChild(wrap);
+  }
+
+  async function bookWasher(start, machine){
+    const room = val("room");
+    const pin = val("pin");
+    const stationPin = val("stationPin");
+    setMsg("msg","Buche…",true);
+
+    const res = await jpost("/api/washer/book", { room, pin, stationPin, start, machine });
+    if (!res.ok){
+      setMsg("msg","Buchen: "+(res.message||res.error), false);
+      alert(JSON.stringify(res,null,2));
+      return;
+    }
+    setMsg("msg",`✅ Gebucht: Waschmaschine ${res.machine} (${fmt(res.start)}–${fmt(res.end)})`, true);
+    await refreshAll();
+  }
+
+  async function loadMyBookings(){
+    const el=document.getElementById("myBookings");
+    el.innerHTML="";
+    const room=val("room"), pin=val("pin");
+    if (!room || !pin){ el.innerHTML=`<div class="muted">Bitte Zimmernummer + PIN eingeben.</div>`; return; }
+
+    const res = await jpost("/api/my-bookings", { room, pin });
+    if (!res.ok){ el.innerHTML=`<div class="err">Fehler: ${res.message||res.error}</div>`; return; }
+
+    const list = res.bookings || [];
+    if (!list.length){ el.innerHTML=`<div class="muted">Keine aktiven Buchungen.</div>`; return; }
+
+    for (const b of list){
+      const div=document.createElement("div");
+      div.className="item";
+      div.innerHTML = `
+        <div class="itemHead">
+          <div>
+            <b>Waschmaschine ${b.machine}</b>
+            <div class="muted small">${fmt(b.start)} – ${fmt(b.end)}</div>
+          </div>
+          <button class="btnSmall danger" onclick="cancelBooking('${b.id}')">Stornieren</button>
+        </div>
+      `;
+      el.appendChild(div);
+    }
+  }
+
+  async function cancelBooking(id){
+    const pin=val("pin");
+    setMsg("msg","Storniere…",true);
+    const res = await jpost("/api/cancel", { id, pin });
+    if (!res.ok){ setMsg("msg","Storno: "+(res.message||res.error), false); alert(JSON.stringify(res,null,2)); return; }
+    setMsg("msg","Storniert.", true);
+    await refreshAll();
+  }
+
+  // Admin
+  document.getElementById("adminPw").addEventListener("keydown", e=>{ if (e.key==="Enter") adminLogin(); });
+
+  async function adminLogin(){
+    const adminPassword=val("adminPw");
+    setMsg("adminMsg","Login…",true);
+    const res=await jpost("/api/admin/login", { adminPassword });
+    if (!res.ok){ setMsg("adminMsg","Login fehlgeschlagen.", false); return; }
+    setMsg("adminMsg","OK", true);
+    document.getElementById("adminArea").style.display="block";
+  }
+
+  async function adminSetStationPin(){
+    const adminPassword=val("adminPw");
+    const stationPin=document.getElementById("adminStationPin").value.trim();
+    setMsg("adminSaveMsg","Speichere Stations-PIN…",true);
+    const res=await jpost("/api/admin/set-station-pin", { adminPassword, stationPin });
+    if (!res.ok){ setMsg("adminSaveMsg","Fehler: "+(res.message||res.error), false); alert(JSON.stringify(res,null,2)); return; }
+    setMsg("adminSaveMsg","Stations-PIN gespeichert.", true);
+  }
+
+  async function adminSaveUI(){
+    const adminPassword=val("adminPw");
+    const uiLayout=document.getElementById("uiLayout").value;
+    const uiTheme=document.getElementById("uiTheme").value;
+    setMsg("adminSaveMsg","Speichere UI…",true);
+    const res=await jpost("/api/admin/set-ui", { adminPassword, uiLayout, uiTheme });
+    if (!res.ok){ setMsg("adminSaveMsg","Fehler: "+(res.message||res.error), false); alert(JSON.stringify(res,null,2)); return; }
+    setMsg("adminSaveMsg","UI gespeichert.", true);
+    await refreshAll();
+  }
+
+  async function adminSaveNews(){
+    const adminPassword=val("adminPw");
+    const text=document.getElementById("adminNewsText").value;
+    const enabled=document.getElementById("adminNewsEnabled").checked;
+    setMsg("adminSaveMsg","Speichere News…",true);
+    const res=await jpost("/api/admin/news/set", { adminPassword, text, enabled });
+    if (!res.ok){ setMsg("adminSaveMsg","Fehler: "+(res.message||res.error), false); alert(JSON.stringify(res,null,2)); return; }
+    setMsg("adminSaveMsg","News gespeichert.", true);
+    await refreshAll();
+  }
+
+  refreshAll();
+</script>
+</body>
+</html>
