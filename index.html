@@ -599,7 +599,11 @@ function tileStatus(type, machine){
   if (m.defect===1) return {cls:"bad", tag:"DEFEKT", text:`Defekt gemeldet von ${m.defectBy || "?"}`};
   const running = bookingForMachineRunning(type, machine);
   if (running) return {cls:"busy", tag:"LÄUFT", text:`Zimmer ${running.room} bis ${fmtTime(running.end)}`};
-  return {cls:"free", tag:"FREI", text:"Frei"};
+    // last user info (when free)
+  const last = (m.lastRoom && String(m.lastRoom).trim() !== "")
+    ? ` • zuletzt: Zimmer ${m.lastRoom}`
+    : "";
+  return {cls:"free", tag:"FREI", text:"Frei" + last};
 }
 
 function renderTiles(){
@@ -1378,5 +1382,6 @@ $("btnLoadLogs").onclick = async ()=>{
 </script>
 </body>
 </html>
+
 
 
