@@ -748,7 +748,7 @@ function renderMyBookings(){
     return;
   }
 
-  const list = (STATE.bookings||[]).filter(b=> b.room===room);
+  const list = (STATE.myBookings || []);
   if (list.length===0){
     box.innerHTML = `<div class="small">Keine Buchungen.</div>`;
     return;
@@ -1382,6 +1382,7 @@ $("btnLoadLogs").onclick = async ()=>{
 </script>
 </body>
 </html>
+
 
 
 
