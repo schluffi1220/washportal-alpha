@@ -346,7 +346,7 @@
 
 <script>
 /*** SET THIS ***/
-const API_BASE = "https://waschportal.schluffi1220.workers.dev"; // <-- DEV Worker URL
+const API_BASE = "https://washportal-dev-worker.schluffi1220.workers.dev"; // <-- DEV Worker URL
 
 // ---------- UI helpers ----------
 const $ = (id)=>document.getElementById(id);
@@ -455,10 +455,7 @@ function buildWasherOptions(){
   for (const b of washerBookings){
     if (byM[b.machine]) byM[b.machine].push(b);
   }
-  function buildWasherOptionsForMachine(machine){
-  const all = buildWasherOptions(); // nutzt cfg / STATE
-  return all.filter(o => Number(o.machine) === Number(machine));
-}
+
   // machine status map
   const machineMap = {};
   for (const m of STATE.machines){
@@ -644,66 +641,6 @@ function renderTiles(){
       const running = bookingForMachineRunning(group.type, m);
 
       if (group.type === "washer") {
-
-        // --- Pro Maschine: Dropdown + Buchen (nur wenn Zugang vorhanden) ---
-        if (creds.room && creds.pin && creds.stationPin) {
-          const row = document.createElement("div");
-          row.style.display = "flex";
-          row.style.gap = "8px";
-          row.style.marginTop = "8px";
-
-          const sel = document.createElement("select");
-          sel.style.flex = "1";
-
-          const opts = buildWasherOptionsForMachine(m); // m = aktuelle Maschine (1..4)
-          for (const o of opts) {
-            const op = document.createElement("option");
-            op.value = JSON.stringify({ machine: Number(o.machine), start: Number(o.start), end: Number(o.end) });
-            op.textContent = o.label;
-            op.disabled = !!o.disabled;
-            sel.appendChild(op);
-          }
-
-          const bookBtn = document.createElement("button");
-          bookBtn.textContent = "Buchen";
-
-          function syncBookBtn(){
-            const so = sel.selectedOptions && sel.selectedOptions[0];
-            bookBtn.disabled = !so || !!so.disabled;
-          }
-          sel.onchange = syncBookBtn;
-          syncBookBtn();
-
-          bookBtn.onclick = async ()=>{
-            try{
-              const so = sel.selectedOptions && sel.selectedOptions[0];
-              if (!so || so.disabled) { toast("⛔ Slot nicht buchbar"); return; }
-
-              const v = JSON.parse(so.value || "{}");
-              if (!v.start || !v.end || !v.machine) { toast("⛔ Slot ungültig"); return; }
-
-              await jpost("/api/washer/book", {
-                room: creds.room,
-                pin: creds.pin,
-                stationPin: creds.stationPin,
-                machine: v.machine,
-                start: v.start,
-                end: v.end
-              });
-
-              toast("✅ Gebucht");
-              await refreshAll();
-            }catch(e){
-              toast("⛔ Buchen fehlgeschlagen");
-            }
-          };
-
-          row.appendChild(sel);
-          row.appendChild(bookBtn);
-          tile.appendChild(row);
-        }
-
-        // --- Freigeben-Button bleibt wie gehabt, wenn Slot läuft und eigenes Zimmer ---
         if (running && creds.room && running.room === creds.room) {
           const b = document.createElement("button");
           b.textContent = "Freigeben";
@@ -718,7 +655,6 @@ function renderTiles(){
           };
           btns.appendChild(b);
         }
-
       } else {
         // dryer
         if (!running) {
@@ -1448,6 +1384,3 @@ $("btnLoadLogs").onclick = async ()=>{
 </script>
 </body>
 </html>
-
-
-
