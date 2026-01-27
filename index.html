@@ -165,7 +165,7 @@
   <header>
     <div class="wrap">
       <h1>Washportal</h1>
-      <div class="sub">Alpha-Stand (Zimmer + PIN + Stations-PIN) · 4 WM · 4 TR · Kachel-UI</div>
+      <div class="sub">DEV-Stand</div>
     </div>
   </header>
 
@@ -346,7 +346,7 @@
 
 <script>
 /*** SET THIS ***/
-const API_BASE = "https://waschportal.schluffi1220.workers.dev"; // <-- DEV Worker URL
+const API_BASE = "https://washportal-dev-worker.schluffi1220.workers.dev"; // <-- DEV Worker URL
 
 // ---------- UI helpers ----------
 const $ = (id)=>document.getElementById(id);
@@ -441,12 +441,11 @@ function berlinMidnightMs(dayOffset){
 }
 
 function buildWasherOptions(){
+  const now = Date.now();
   const cfg = STATE.config;
   const machines = [1,2,3,4];
   const hours = (cfg?.washerHours || []).slice();
   const durMs = 120*60*1000; // fixed 2h
-  const now = Date.now();
-
   const daysPast = cfg.daysPast || 1;
   const daysFuture = cfg.daysFuture || 6;
 
@@ -463,20 +462,22 @@ function buildWasherOptions(){
     if (m.type==="washer") machineMap[m.machine] = m;
   }
 
-  const options = [];
-  for (let day = -daysPast; day <= daysFuture; day++){
-    const day0 = berlinMidnightMs(day);
-    for (const h of hours){
-      const start = day0 + h*60*60*1000;
-      const end = start + durMs;
+const options = [];
+for (let dayOff = 0; dayOff <= cfg.daysFuture; dayOff++) {
 
-      for (const mac of machines){
-        const ms = machineMap[mac];
-        const disabledMachine = !ms || ms.enabled===0;
-        const defect = !!(ms && ms.defect===1);
+  const day0 = berlinMidnightMs(dayOff);
 
-        // past slots cannot be booked if end<=now (per spec)
-        const pastNotBookable = !(end > now);
+  for (const h of hours){
+    const start = day0 + h*60*60*1000;
+    const end = start + durMs;
+
+    for (const mac of machines){
+      const ms = machineMap[mac];
+      const disabledMachine = !ms || ms.enabled===0;
+      const defect = !!(ms && ms.defect===1);
+
+      const pastNotBookable = end <= now;
+
 
         // overlap?
         let booked = false;
@@ -1383,8 +1384,3 @@ $("btnLoadLogs").onclick = async ()=>{
 </script>
 </body>
 </html>
-
-
-
-
-
