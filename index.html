@@ -179,6 +179,7 @@
       min-width: 56px;
       height: 36px;
     }
+.langBtn.isEn{background:rgba(121,214,255,.18);}
 
 
     .hdrRow{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -570,6 +571,16 @@ const I18N = {
 };
 let LANG = (localStorage.getItem("wp_lang") || "de");
 function tKey(k){ return (I18N[LANG] && I18N[LANG][k]) ? I18N[LANG][k] : (I18N.de[k] || k); }
+function renderLangToggle(){
+  const b = document.getElementById('langToggle');
+  if (!b) return;
+  // simple pill toggle: show current language and tooltip
+  b.textContent = (LANG==='de') ? 'DE' : 'EN';
+  b.title = (LANG==='de') ? 'Switch to English' : 'Auf Deutsch umschalten';
+  b.setAttribute('aria-label', (LANG==='de') ? 'Sprache: Deutsch (zum Umschalten auf Englisch klicken)' : 'Language: English (click to switch to German)');
+  // visual state
+  b.classList.toggle('isEn', LANG==='en');
+}
 function setLang(next){
   LANG = (next==="en" || next==="de") ? next : "de";
   localStorage.setItem("wp_lang", LANG);
