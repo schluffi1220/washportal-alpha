@@ -745,22 +745,12 @@ const MSG_EN = {
 
 function trMsg(msg){
   if (LANG==="de") return msg;
-  // translate dynamic alert/confirm prefixes
   const s = String(msg||"");
-  const p1 = "📢 Neue Info:
-
-";
-  if (s.startsWith(p1)) return "📢 New info:
-
-" + s.slice(p1.length);
-
-  const p2 = "Überbuchen nur wenn bestätigt:
-
-";
-  if (s.startsWith(p2)) return "Overbook only if confirmed:
-
-" + s.slice(p2.length);
-
+  // translate dynamic alert/confirm prefixes (multi-line messages)
+  const p1 = "📢 Neue Info:\n\n";
+  if (s.startsWith(p1)) return "📢 New info:\n\n" + s.slice(p1.length);
+  const p2 = "Überbuchen nur wenn bestätigt:\n\n";
+  if (s.startsWith(p2)) return "Overbook only if confirmed:\n\n" + s.slice(p2.length);
   return MSG_EN[s] || s;
 }
 
