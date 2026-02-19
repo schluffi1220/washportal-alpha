@@ -182,8 +182,8 @@
       <h2>1) Zugang</h2>
       <div class="row">
         <div>
-          <label>Zimmernummer (0–400)</label>
-          <input id="room" inputmode="numeric" placeholder="z.B. 316" />
+          <label>Nutzer-ID (frei wählbar)</label>
+          <input id="room" placeholder="z.B. A17X oder 10023" />
         </div>
         <div>
           <label>PIN (4-stellig)</label>
@@ -195,7 +195,7 @@
 
       <button class="btn" id="btnRefresh">Aktualisieren</button>
       <div class="small" style="margin-top:10px">
-        Hinweis: Beim ersten Login einer Zimmernummer wird der PIN automatisch gespeichert (verschlüsselt). Danach muss er stimmen.
+        Hinweis: Beim ersten Login einer Nutzer-ID wird der PIN automatisch gespeichert (verschlüsselt). Danach muss er stimmen.
       </div>
 
       <div id="newsBoxWrap" style="margin-top:12px; display:none;"></div>
@@ -228,7 +228,7 @@
     </div>
 
     <!-- 5) Feedback / Antworten -->
-    <div class="card">
+    <div class="card" id="cardFeedback">
       <h2>5) Feedback / Antworten</h2>
 
       <div class="small" style="margin-bottom:10px">
@@ -334,8 +334,9 @@
 
         <details style="margin-top:12px" open>
           <summary>Feedback (Admin-Chat)</summary>
+          <label style="margin-top:10px"><input type="checkbox" id="feedbackEnabled" /> Feedback für User aktivieren</label>
           <div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0">
-            <input id="adminThreadFilter" placeholder="Filter (Zimmer/Text)..." style="flex:1;min-width:180px" />
+            <input id="adminThreadFilter" placeholder="Filter (ID/Text)..." style="flex:1;min-width:180px" />
             <button class="btn danger" id="btnAdminDeleteSelectedThreads">Ausgewählte löschen</button>
             <button class="btn secondary" id="btnAdminExportThreadsCSV">Threads CSV</button>
           </div>
@@ -347,7 +348,7 @@
   <div class="pill">Admin Tools</div>
   <button class="btn" id="btnAdminLoadLogs">Logs laden</button>
   <button class="btn secondary" id="btnAdminExportLogsCSV">Logs CSV</button>
-  <input id="adminLogsFilter" placeholder="Logs filtern (Zimmer/Text)…" style="flex:1;min-width:220px" />
+  <input id="adminLogsFilter" placeholder="Logs filtern (ID/Text)…" style="flex:1;min-width:220px" />
 </div>
 
 <details id="adminLogsDetails" style="margin-top:10px" open>
@@ -360,7 +361,7 @@
 <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px">
   <button class="btn" id="btnAdminLoadBookings">Buchungen laden</button>
   <button class="btn secondary" id="btnAdminExportBookingsCSV">Buchungen CSV</button>
-  <input id="adminBookingsFilter" placeholder="Buchungen filtern (Zimmer/Maschine)…" style="flex:1;min-width:220px" />
+  <input id="adminBookingsFilter" placeholder="Buchungen filtern (ID/Maschine)…" style="flex:1;min-width:220px" />
 </div>
 
 <details id="adminBookingsDetails" style="margin-top:10px" open>
@@ -645,10 +646,10 @@ function tileStatus(type, machine){
   if (m.enabled===0) return {cls:"bad", tag:"GESPERRT", text:"Maschine gesperrt"};
   if (m.defect===1) return {cls:"bad", tag:"DEFEKT", text:`Defekt gemeldet von ${m.defectBy || "?"}`};
   const running = bookingForMachineRunning(type, machine);
-  if (running) return {cls:"busy", tag:"LÄUFT", text:`Zimmer ${running.room} bis ${fmtTime(running.end)}`};
+  if (running) return {cls:"busy", tag:"LÄUFT", text:`Nutzer ${running.room} bis ${fmtTime(running.end)}`};
     // last user info (when free)
   const last = (m.lastRoom && String(m.lastRoom).trim() !== "")
-    ? ` • zuletzt: Zimmer ${m.lastRoom}`
+    ? ` • zuletzt: Nutzer ${m.lastRoom}`
     : "";
   return {cls:"free", tag:"FREI", text:"Frei" + last};
 }
@@ -926,6 +927,13 @@ function renderMyBookings(){
   }
 }
 
+function applyFeedbackVisibility(){
+  const card = $("cardFeedback");
+  if (!card) return;
+  const enabled = !(STATE && STATE.config && STATE.config.feedbackEnabled === false);
+  card.style.display = enabled ? "" : "none";
+}
+
 function renderMyBookingButtons(b, now){
   // stornieren: only if booked & not started & not dryer
   const canCancel = b.status==="booked" && now < b.start && b.type==="washer";
@@ -941,6 +949,10 @@ function renderMyBookingButtons(b, now){
 // ---------- Feedback ----------
 async function loadFeedback(showPopup=false){
   const c = getCreds();
+  if (STATE && STATE.config && STATE.config.feedbackEnabled === false){
+    toast("ℹ️ Feedback ist deaktiviert");
+    return;
+  }
   try{
     const r = await jpost("/api/feedback/load", c);
     const box = $("feedbackList");
@@ -1034,6 +1046,9 @@ function renderAdminConfig(cfg, newsSeenCount){
     : `News ist aktuell deaktiviert.`;
   // defect
   $("userDefectEnabled").checked = !!cfg.userDefectEnabled;
+
+  // feedback toggle
+  if ($("feedbackEnabled")) $("feedbackEnabled").checked = (cfg.feedbackEnabled !== false);
 
   // defect allowed matrix
   const da = cfg.userDefectAllowed || {washer:{},dryer:{}};
@@ -1490,9 +1505,12 @@ async function refreshAll(){
     renderSlotDropdown();
     renderTiles();
     renderMyBookings();
+    applyFeedbackVisibility();
 
     // feedback popup if new
-    if (r.feedback && r.feedback.userUnread) {
+    if (r.config && r.config.feedbackEnabled === false) {
+      // feedback disabled
+    } else if (r.feedback && r.feedback.userUnread) {
       alert("💬 Neues Feedback vom Admin vorhanden.");
     }
 
@@ -1518,6 +1536,7 @@ $("btnBookWasher").onclick = async ()=>{
   const c = getCreds();
   const v = $("slotSelect").value;
   if (!c.room || !c.pin || !c.stationPin) return toast("Bitte Zugang eingeben");
+  if (STATE && STATE.config && STATE.config.feedbackEnabled === false) return toast("ℹ️ Feedback ist deaktiviert");
   if (!v) return toast("Bitte Slot auswählen");
 
   const slot = JSON.parse(v);
@@ -1566,6 +1585,17 @@ $("btnAdminLogout").onclick = ()=>{
 };
 
 $("btnAdminReload").onclick = adminReload;
+
+$("feedbackEnabled").onchange = async ()=>{
+  const s = getAdminSession(); if (!s) return toast("Admin Session abgelaufen");
+  try{
+    await jpost("/api/admin/config/set", {adminPassword:s.pw, feedbackEnabled: !!$("feedbackEnabled").checked});
+    toast("✅ Feedback-Einstellung gespeichert");
+    await refreshAll();
+  }catch(e){
+    toast("⛔ Fehler beim Speichern");
+  }
+};
 
 $("btnAdminLoadLogs").onclick = adminLoadLogs;
 $("btnAdminLoadBookings").onclick = adminLoadBookings;
