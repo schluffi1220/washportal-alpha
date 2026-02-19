@@ -170,7 +170,7 @@
 <body>
   <header>
     <div class="wrap">
-      <h1>Washportal</h1>
+      <h1 id="wpTitle" style="cursor:pointer">Washportal</h1>
       <div class="sub">DEV-Stand</div>
     </div>
   </header>
@@ -245,7 +245,7 @@
     </div>
 
     <!-- 6) Admin -->
-    <div class="card">
+    <div class="card" id="cardAdmin" style="display:none">
       <h2>6) Admin</h2>
 
       <div id="adminLoginBox">
@@ -392,6 +392,32 @@ function toast(msg){
   clearTimeout(window.__t);
   window.__t = setTimeout(()=> t.style.display="none", 3200);
 }
+
+// ---------- Admin reveal (5 taps on title) ----------
+const ADMIN_TAPS_REQUIRED = 5;
+let __adminTapCount = 0;
+
+function setAdminCardVisible(vis){
+  const card = $("cardAdmin");
+  if (card) card.style.display = vis ? "block" : "none";
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  // ensure hidden on first paint (privacy)
+  setAdminCardVisible(false);
+
+  const title = $("wpTitle");
+  if (!title) return;
+
+  title.addEventListener("click", ()=>{
+    __adminTapCount++;
+    if (__adminTapCount >= ADMIN_TAPS_REQUIRED){
+      setAdminCardVisible(true);
+      __adminTapCount = 0;
+      toast("🔓 Admin-Bereich freigeschaltet");
+    }
+  });
+});
 function fmtDT(ms){
   const d = new Date(ms);
   return d.toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
