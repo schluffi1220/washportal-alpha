@@ -433,6 +433,25 @@ const I18N = {
     firstRefreshHint:"Bitte erst „Aktualisieren“ drücken",
     book:"Buchen",
     legend:"Grün = frei · Blau = läuft/gebucht · Rot = defekt/gesperrt",
+    // dynamic labels
+    pleaseSelect:"Bitte auswählen…",
+    noSlots:"Keine Slots verfügbar",
+    freeWasherSlots:"Freie Wasch-Slots: {n} (grau = belegt/defekt/gesperrt/vergangen)",
+    washer:"Waschmaschine",
+    dryer:"Trockner",
+    locked:"gesperrt",
+    defect:"defekt",
+    past:"vergangen",
+    occupied:"belegt",
+    running:"LÄUFT",
+    freeTag:"FREI",
+    missingTag:"FEHLT",
+    blockedTag:"GESPERRT",
+    defectTag:"DEFEKT",
+    lastUsed:"zuletzt",
+    until:"bis",
+    user:"Nutzer",
+    free:"Frei",
 
     feedbackIntro:"Feedback ist ein Chat zwischen Nutzer & Admin. Neue Antworten erscheinen als Popup.",
     loadFeedback:"Feedback laden",
@@ -513,6 +532,25 @@ const I18N = {
     firstRefreshHint:"Please press “Refresh” first",
     book:"Book",
     legend:"Green = free · Blue = running/booked · Red = defect/blocked",
+    // dynamic labels
+    pleaseSelect:"Please select…",
+    noSlots:"No slots available",
+    freeWasherSlots:"Free washer slots: {n} (grey = occupied/defect/blocked/past)",
+    washer:"Washer",
+    dryer:"Dryer",
+    locked:"blocked",
+    defect:"defect",
+    past:"past",
+    occupied:"occupied",
+    running:"RUNNING",
+    freeTag:"FREE",
+    missingTag:"MISSING",
+    blockedTag:"BLOCKED",
+    defectTag:"DEFECT",
+    lastUsed:"last",
+    until:"until",
+    user:"User",
+    free:"Free",
 
     feedbackIntro:"Feedback is a chat between user & admin. New replies will show as a popup.",
     loadFeedback:"Load feedback",
@@ -948,20 +986,20 @@ function buildWasherOptions(){
           }
         }
 
-        let label = `${fmtDate(start)} ${fmtTime(start)}–${fmtTime(end)} – Waschmaschine ${mac}`;
+        let label = `${fmtDate(start)} ${fmtTime(start)}–${fmtTime(end)} – ${tKey("washer")} ${mac}`;
         let disabled = false;
 
         if (disabledMachine){
-          label += " (gesperrt)";
+          label += ` (${tKey("locked")})`;
           disabled = true;
         } else if (defect){
-          label += " (defekt)";
+          label += ` (${tKey("defect")})`;
           disabled = true;
         } else if (isPast){
-          label += " (vergangen)";
+          label += ` (${tKey("past")})`;
           disabled = true;
         } else if (booked){
-          label += " (belegt)";
+          label += ` (${tKey("occupied")})`;
           disabled = true;
         }
 
@@ -1038,11 +1076,11 @@ function renderSlotDropdown(){
   sel.innerHTML = "";
   const opts = buildWasherOptions();
   if (opts.length===0){
-    sel.appendChild(new Option("Keine Slots verfügbar", ""));
+    sel.appendChild(new Option(tKey("noSlots"), ""));
     return;
   }
 
-  sel.appendChild(new Option("Bitte auswählen…", ""));
+  sel.appendChild(new Option(tKey("pleaseSelect"), ""));
   for (const o of opts){
     const opt = new Option(o.label, JSON.stringify({machine:o.machine,start:o.start,end:o.end}));
     opt.disabled = !!o.disabled;
@@ -1051,21 +1089,21 @@ function renderSlotDropdown(){
   }
 
   const freeCount = opts.filter(o=>!o.disabled).length;
-  $("slotHint").textContent = `Freie Wasch-Slots: ${freeCount} (grau = belegt/defekt/gesperrt/vergangen)`;
+  $("slotHint").textContent = tKey("freeWasherSlots").replace("{n}", String(freeCount));
 }
 
 function tileStatus(type, machine){
   const m = STATE.machines.find(x=>x.type===type && x.machine===machine);
-  if (!m) return {cls:"bad", tag:"FEHLT", text:"Nicht vorhanden"};
-  if (m.enabled===0) return {cls:"bad", tag:"GESPERRT", text:"Maschine gesperrt"};
-  if (m.defect===1) return {cls:"bad", tag:"DEFEKT", text:`Defekt gemeldet von ${m.defectBy || "?"}`};
+  if (!m) return {cls:"bad", tag:tKey("missingTag"), text:tKey("missingTag")};
+  if (m.enabled===0) return {cls:"bad", tag:tKey("blockedTag"), text:tKey("blockedTag")};
+  if (m.defect===1) return {cls:"bad", tag:tKey("defectTag"), text:`${tKey("defectTag")}: ${m.defectBy || "?"}`};
   const running = bookingForMachineRunning(type, machine);
   if (running) return {cls:"busy", tag:"LÄUFT", text:`Nutzer ${running.room} bis ${fmtTime(running.end)}`};
     // last user info (when free)
   const last = (m.lastRoom && String(m.lastRoom).trim() !== "")
     ? ` • zuletzt: Nutzer ${m.lastRoom}`
     : "";
-  return {cls:"free", tag:"FREI", text:"Frei" + last};
+  return {cls:"free", tag:tKey("freeTag"), text:tKey("free") + last};
 }
 
 function renderTiles(){
@@ -1078,8 +1116,8 @@ function renderTiles(){
   }
 
   const types = [
-    {type:"washer", title:"Waschmaschine", machines:[1,2,3,4]},
-    {type:"dryer",  title:"Trockner",      machines:[1,2,3,4]},
+    {type:"washer", title:tKey("washer"), machines:[1,2,3,4]},
+    {type:"dryer",  title:tKey("dryer"),      machines:[1,2,3,4]},
   ];
 
   for (const group of types){
@@ -1133,10 +1171,10 @@ function renderTiles(){
         sel.style.flex = "1";
 
         if (!creds.room || !creds.pin || !creds.stationPin) {
-          sel.appendChild(new Option("Bitte erst Zugang eingeben", ""));
+          sel.appendChild(new Option(tKey("firstRefreshHint"), ""));
           sel.disabled = true;
         } else {
-          sel.appendChild(new Option("Bitte Slot wählen…", ""));
+          sel.appendChild(new Option(tKey("pleaseSelect"), ""));
           const opts = buildWasherOptionsForMachine(m);
           for (const o of opts){
             const opt = new Option(o.label, `${o.start}|${o.end}|${o.machine}`);
@@ -1287,7 +1325,7 @@ function renderMyBookings(){
   for (const b of list.sort((a,b)=>a.start-b.start)){
     const state = myBookingState(b);
     const cls = state==="bad" ? "bad" : state==="busy" ? "busy" : state==="free" ? "free" : "";
-    const title = `${b.type==="washer" ? "Waschmaschine" : "Trockner"} ${b.machine}`;
+    const title = `${b.type==="washer" ? tKey("washer") : tKey("dryer")} ${b.machine}`;
     const line = `${fmtDate(b.start)} ${fmtTime(b.start)}–${fmtTime(b.end)}`;
     let statusTxt = b.status;
     if (b.status==="booked") statusTxt = (b.start<=now && b.end>now) ? "läuft" : "gebucht";
