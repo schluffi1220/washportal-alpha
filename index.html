@@ -228,7 +228,7 @@
     </div>
 
     <!-- 5) Feedback / Antworten -->
-    <div class="card" id="cardFeedback">
+    <div class="card" id="cardFeedback" style="display:none">
       <h2>5) Feedback / Antworten</h2>
 
       <div class="small" style="margin-bottom:10px">
@@ -930,8 +930,8 @@ function renderMyBookings(){
 function applyFeedbackVisibility(){
   const card = $("cardFeedback");
   if (!card) return;
-  const enabled = !(STATE && STATE.config && STATE.config.feedbackEnabled === false);
-  card.style.display = enabled ? "" : "none";
+  const enabled = !!(STATE && STATE.config && STATE.config.feedbackEnabled !== false);
+card.style.display = enabled ? "" : "none";
 }
 
 function renderMyBookingButtons(b, now){
