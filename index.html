@@ -180,6 +180,13 @@
       height: 36px;
     }
 
+
+    .hdrRow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .langToggle{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:rgba(255,255,255,.04)}
+    .langBtn{appearance:none;border:0;background:transparent;color:var(--muted);padding:6px 10px;font-weight:900;font-size:12px;cursor:pointer}
+    .langBtn.active{color:var(--txt);background:rgba(121,214,255,.20)}
+    .langBtn:focus{outline:2px solid rgba(121,214,255,.45);outline-offset:-2px}
+
 </style>
 </head>
 <body>
@@ -570,6 +577,7 @@ function setLang(next){
   if (b) b.textContent = tKey("langShort");
   document.documentElement.lang = LANG;
   applyI18n();
+renderLangToggle();
 }
 function applyI18n(){
   // header
@@ -700,52 +708,27 @@ function applyI18n(){
 }
 // Translate toasts/alerts best-effort
 const MSG_EN = {
-  // common toasts
-  "✅ Gebucht":"✅ Booked",
-  "✅ Gebucht!":"✅ Booked!",
-  "⛔ Buchen fehlgeschlagen":"⛔ Booking failed",
-  "✅ Freigegeben":"✅ Released",
-  "⛔ Freigeben fehlgeschlagen":"⛔ Release failed",
-  "⛔ Freigeben nicht möglich":"⛔ Cannot release",
-  "✅ Trockner gebucht":"✅ Dryer booked",
-  "⛔ Storno nicht möglich":"⛔ Cancel not possible",
-  "✅ Storniert":"✅ Cancelled",
-  "⛔ Bitte Slot wählen":"⛔ Please select a slot",
-  "Bitte Slot auswählen":"Please select a slot",
-  "⛔ Bitte Slot wählen":"⛔ Please select a slot",
+  "⛔ Bitte erst Zugang eingeben":"⛔ Please enter access first",
   "⛔ Bitte Slot wählen":"⛔ Please select a slot",
   "⛔ Ungültiger Slot":"⛔ Invalid slot",
+  "⛔ Buchen fehlgeschlagen":"⛔ Booking failed",
+  "✅ Gebucht":"✅ Booked",
+  "✅ Freigegeben":"✅ Released",
+  "⛔ Freigeben fehlgeschlagen":"⛔ Release failed",
+  "⛔ Freigeben nicht möglich":"⛔ Release not possible",
+  "⛔ Storno nicht möglich":"⛔ Cancel not possible",
+  "✅ Storniert":"✅ Cancelled",
+  "⛔ Feedback laden fehlgeschlagen":"⛔ Failed to load feedback",
+  "⛔ Nicht möglich":"⛔ Not possible",
   "✅ Gespeichert":"✅ Saved",
   "⛔ Konnte nicht speichern":"⛔ Could not save",
-  "⛔ Feedback laden fehlgeschlagen":"⛔ Failed to load feedback",
   "✅ Als gelesen markiert":"✅ Marked as read",
-  "⛔ Nicht möglich":"⛔ Not possible",
-  "⛔ PIN falsch":"⛔ Wrong PIN",
-  "✅ Gesendet":"✅ Sent",
-  "⛔ Feedback senden fehlgeschlagen":"⛔ Failed to send feedback",
-  "✅ Logout":"✅ Logout",
-  "✅ Bereit":"✅ Ready",
-  "Bitte Zugang eingeben":"Please enter access data",
-  "Bitte Zugang vollständig eingeben":"Please enter all access data",
-  "Admin Session abgelaufen":"Admin session expired",
-  "Admin Passwort fehlt":"Admin password missing",
-  "✅ Admin Login OK":"✅ Admin login OK",
-  "⛔ Admin Login forbidden":"⛔ Admin login forbidden",
-  "⛔ Admin Daten laden fehlgeschlagen":"⛔ Failed to load admin data",
-  "⛔ Bitte erst Admin-Login":"⛔ Please login as admin first",
-  "⛔ Keine Daten":"⛔ No data",
-  "⛔ Keine Threads gewählt":"⛔ No threads selected",
-  "✅ Threads gelöscht":"✅ Threads deleted",
-  "✅ CSV exportiert":"✅ CSV exported",
-  "⛔ Keine Threads zum Export":"⛔ No threads to export",
-  "Antwort fehlt":"Reply missing",
-  "✅ Antwort gesendet":"✅ Reply sent",
-  "⛔ Senden fehlgeschlagen":"⛔ Sending failed",
-  "✅ Thread gelöscht":"✅ Thread deleted",
-  "✅ Feedback-Einstellung gespeichert":"✅ Feedback setting saved",
-  "⛔ Fehler beim Speichern":"⛔ Error while saving",
+  "✅ Admin-Login ok":"✅ Admin login ok",
+  "⛔ Admin-Passwort falsch":"⛔ Wrong admin password",
+  "✅ Admin abgemeldet":"✅ Admin logged out",
   "✅ Stations-PIN gespeichert":"✅ Station PIN saved",
-  "✅ Admin Passwort geändert":"✅ Admin password changed",
+  "⛔ Fehler beim Speichern":"⛔ Error while saving",
+  "✅ Passwort geändert":"✅ Password changed",
   "⛔ Fehler beim Ändern":"⛔ Error while changing",
   "✅ Waschzeiten gespeichert":"✅ Washer times saved",
   "✅ Trockner-Dauer gespeichert":"✅ Dryer duration saved",
@@ -756,29 +739,32 @@ const MSG_EN = {
   "ℹ️ Feedback ist deaktiviert":"ℹ️ Feedback is disabled",
   "🔓 Admin-Bereich freigeschaltet":"🔓 Admin unlocked",
   "⚠️ Worker nicht erreichbar – API_BASE prüfen":"⚠️ Worker not reachable – check API_BASE",
-
-  // alerts / confirms
-  "📢 Neue Info:
-
-":"📢 New info:
-
-",
-  "💬 Neue Nachricht im Feedback vorhanden.":"💬 There is a new feedback message.",
-  "💬 Neues Feedback vom Admin vorhanden.":"💬 New feedback from the admin is available.",
-  "Überbuchen nur wenn bestätigt:
-
-Die Wäsche vom Vorgänger ist sauber und vorsichtig im Korb oben/nebendran abgelegt.":
-    "Overbook only if confirmed:
-
-The previous user's laundry is clean and has been placed carefully in the basket on/next to the machine.",
   "Admin-Storno wirklich ausführen?":"Really perform admin cancel?",
   "Thread wirklich löschen?":"Really delete thread?"
 };
+
 function trMsg(msg){
   if (LANG==="de") return msg;
-  return MSG_EN[msg] || msg;
+  // translate dynamic alert/confirm prefixes
+  const s = String(msg||"");
+  const p1 = "📢 Neue Info:
+
+";
+  if (s.startsWith(p1)) return "📢 New info:
+
+" + s.slice(p1.length);
+
+  const p2 = "Überbuchen nur wenn bestätigt:
+
+";
+  if (s.startsWith(p2)) return "Overbook only if confirmed:
+
+" + s.slice(p2.length);
+
+  return MSG_EN[s] || s;
 }
-// patch alert to translate known messages
+
+// patch alert/confirm to translate known messages
 const __alert = window.alert.bind(window);
 window.alert = (m)=> __alert(trMsg(String(m)));
 const __confirm = window.confirm.bind(window);
