@@ -165,13 +165,31 @@
   color:#000 !important;
   background:#fff !important;
 }
+
+    .headRow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .headLeft{display:flex;flex-direction:column}
+    .langBtn{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--txt);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-weight: 800;
+      cursor: pointer;
+      min-width: 56px;
+      height: 36px;
+    }
+
 </style>
 </head>
 <body>
   <header>
-    <div class="wrap">
-      <h1 id="wpTitle" style="cursor:pointer">Washportal</h1>
-      <div class="sub">DEV-Stand</div>
+    <div class="wrap headRow">
+      <div class="headLeft">
+        <h1 id="wpTitle" style="cursor:pointer">Washportal</h1>
+        <div class="sub" id="subText">DEV-Stand</div>
+      </div>
+      <button class="langBtn" id="langToggle" type="button" aria-label="Sprache / Language">DE</button>
     </div>
   </header>
 
@@ -386,44 +404,161 @@ const API_BASE = "https://waschportal.schluffi1220.workers.dev"; // <-- DEV Work
 // ---------- i18n (DE/EN) ----------
 const I18N = {
   de: {
-    langShort:"DE", langName:"Deutsch",
-    access:"1) Zugang", userIdLabel:"Nutzer-ID (frei wählbar)", pinLabel:"PIN (4-stellig)", stationPinLabel:"Stations-PIN (4-stellig)", refresh:"Aktualisieren",
-    bookSlots:"2) Slots buchen", selectSlot:"Wasch-Slot auswählen", book:"Buchen",
-    overview:"3) Maschinenübersicht", legend:"Grün = frei · Blau = läuft/gebucht · Rot = defekt/gesperrt",
+    langShort:"DE",
+    access:"1) Zugang",
+    bookSlots:"2) Slots buchen",
+    overview:"3) Maschinenübersicht",
     myBookings:"4) Meine Buchungen",
-    feedback:"5) Feedback / Antworten", feedbackIntro:"Feedback ist ein Chat zwischen Nutzer & Admin. Neue Antworten erscheinen als Popup.", loadFeedback:"Feedback laden", newMsg:"Neue Nachricht", send:"Senden",
-    admin:"6) Admin", adminPw:"Admin-Passwort", login:"Login", logout:"Logout", adminRefresh:"Admin aktualisieren",
-    setStationPin:"Stations-PIN setzen/ändern", save:"Speichern", changeAdminPw:"Admin-Passwort ändern", newAdminPw:"Neues Admin-Passwort", change:"Ändern",
-    washerHours:"Wasch-Slots (Uhrzeiten per Haken)", washerHoursHint:"Waschdauer ist fix 2 Stunden.", saveWasherTimes:"Waschzeiten speichern",
-    dryerDuration:"Trockner-Dauer", duration:"Dauer",
-    daysWindow:"Tage-Fenster + Auto-Purge", pastDays:"Vergangene Tage anzeigen", futureDays:"Folgende Tage anzeigen",
-    news:"News („Was ist neu?“)", active:"Aktiv", text:"Text", bumpVersion:"Version erhöhen (Popup erneut bei allen)",
-    machines:"Maschinen sperren/entsperren + Defekt", machinesHint:"Sperren = rot, User kann nicht buchen. Defekt = rot, Buchungen bleiben rot markiert.",
-    userDefects:"Defektmeldung durch User erlauben", usersMayReport:"User dürfen Defekte melden",
-    adminChat:"Feedback (Admin-Chat)", filter:"Filter (Zimmer/Text)...", deleteSelected:"Ausgewählte löschen", threadsCsv:"Threads CSV",
-    adminTools:"Admin Tools", loadLogs:"Logs laden", logsCsv:"Logs CSV", logsFilter:"Logs filtern (Zimmer/Text)…",
-    loadBookings:"Buchungen laden", bookingsCsv:"Buchungen CSV", bookingsFilter:"Buchungen filtern (Zimmer/Maschine)…",
-    adminUnlocked:"Admin-Bereich freigeschaltet"
+    feedback:"5) Feedback / Antworten",
+    admin:"6) Admin",
+
+    userIdLabel:"Nutzer-ID (frei wählbar)",
+    userIdPh:"z.B. A17X oder 10023",
+    pinLabel:"PIN (4-stellig)",
+    pinPh:"****",
+    stationPinLabel:"Stations-PIN (4-stellig)",
+    stationPinPh:"****",
+    refresh:"Aktualisieren",
+    accessHint:"Hinweis: Beim ersten Login einer Nutzer-ID wird der PIN automatisch gespeichert (verschlüsselt). Danach muss er stimmen.",
+
+    selectSlot:"Wasch-Slot auswählen",
+    firstRefreshHint:"Bitte erst „Aktualisieren“ drücken",
+    book:"Buchen",
+    legend:"Grün = frei · Blau = läuft/gebucht · Rot = defekt/gesperrt",
+
+    feedbackIntro:"Feedback ist ein Chat zwischen Nutzer & Admin. Neue Antworten erscheinen als Popup.",
+    loadFeedback:"Feedback laden",
+    newMsg:"Neue Nachricht",
+    newMsgPh:"Deine Nachricht…",
+    send:"Senden",
+
+    adminPw:"Admin-Passwort",
+    adminPwPh:"initial (falls neu)",
+    login:"Login",
+    logout:"Logout",
+    adminRefresh:"Admin aktualisieren",
+
+    setStationPin:"Stations-PIN setzen/ändern",
+    changeAdminPw:"Admin-Passwort ändern",
+    washerHours:"Wasch-Slots (Uhrzeiten per Haken)",
+    dryerDuration:"Trockner-Dauer",
+    daysWindow:"Tage-Fenster + Auto-Purge",
+    news:"News („Was ist neu?“)",
+    machines:"Maschinen sperren/entsperren + Defekt",
+    userDefects:"Defektmeldung durch User erlauben",
+    adminChat:"Feedback (Admin-Chat)",
+
+    save:"Speichern",
+    change:"Ändern",
+    saveWasherTimes:"Waschzeiten speichern",
+
+    // admin labels
+    stationPinLabelAdmin:"Stations-PIN (4-stellig)",
+    newAdminPw:"Neues Admin-Passwort",
+    washerDurationFixed:"Waschdauer ist fix 2 Stunden.",
+    dryerLabel:"Dauer",
+    pastDays:"Vergangene Tage anzeigen",
+    futureDays:"Folgende Tage anzeigen",
+    purgeNote:"Purge (Löschen alter Buchungen) bauen wir nach Alpha sauber ein – Logs bleiben.",
+    newsActive:"Aktiv",
+    newsText:"Text",
+    bumpNews:"Version erhöhen (Popup erneut bei allen)",
+    machinesSave:"Maschinen speichern",
+    userDefectEnabled:"User dürfen Defekte melden",
+    threadsFilterPh:"Filter (Nutzer/Text)...",
+    deleteSelected:"Ausgewählte löschen",
+    threadsCsv:"Threads CSV",
+    replyMissing:"Antwort fehlt",
+    logsLoad:"Logs laden",
+    logsCsv:"Logs CSV",
+    logsFilterPh:"Logs filtern (Nutzer/Text)…",
+    bookingsLoad:"Buchungen laden",
+    bookingsCsv:"Buchungen CSV",
+    bookingsFilterPh:"Buchungen filtern (Nutzer/Maschine)…",
+
+    // privacy toggles
+    feedbackEnabledLabel:"Feedback für User aktivieren",
+
+    // common
+    noData:"Keine Daten",
+    ready:"Bereit",
   },
   en: {
-    langShort:"EN", langName:"English",
-    access:"1) Access", userIdLabel:"User ID (freely chosen)", pinLabel:"PIN (4 digits)", stationPinLabel:"Station PIN (4 digits)", refresh:"Refresh",
-    bookSlots:"2) Book slots", selectSlot:"Select washer slot", book:"Book",
-    overview:"3) Machine overview", legend:"Green = free · Blue = running/booked · Red = broken/locked",
+    langShort:"EN",
+    access:"1) Access",
+    bookSlots:"2) Book slots",
+    overview:"3) Machines overview",
     myBookings:"4) My bookings",
-    feedback:"5) Feedback / replies", feedbackIntro:"Feedback is a chat between user & admin. New replies appear as a popup.", loadFeedback:"Load feedback", newMsg:"New message", send:"Send",
-    admin:"6) Admin", adminPw:"Admin password", login:"Login", logout:"Logout", adminRefresh:"Refresh admin",
-    setStationPin:"Set/change station PIN", save:"Save", changeAdminPw:"Change admin password", newAdminPw:"New admin password", change:"Change",
-    washerHours:"Washer slots (hours via checkbox)", washerHoursHint:"Washer duration is fixed to 2 hours.", saveWasherTimes:"Save washer hours",
-    dryerDuration:"Dryer duration", duration:"Duration",
-    daysWindow:"Day window + auto-purge", pastDays:"Show past days", futureDays:"Show future days",
-    news:"News (What\'s new?)", active:"Enabled", text:"Text", bumpVersion:"Increase version (show popup again for all)",
-    machines:"Lock/unlock machines + broken", machinesHint:"Locked = red, users can’t book. Broken = red, bookings stay marked.",
-    userDefects:"Allow users to report issues", usersMayReport:"Users may report defects",
-    adminChat:"Feedback (admin chat)", filter:"Filter (user/text)...", deleteSelected:"Delete selected", threadsCsv:"Threads CSV",
-    adminTools:"Admin tools", loadLogs:"Load logs", logsCsv:"Logs CSV", logsFilter:"Filter logs (user/text)…",
-    loadBookings:"Load bookings", bookingsCsv:"Bookings CSV", bookingsFilter:"Filter bookings (user/machine)…",
-    adminUnlocked:"Admin unlocked"
+    feedback:"5) Feedback / Messages",
+    admin:"6) Admin",
+
+    userIdLabel:"User ID (freely chosen)",
+    userIdPh:"e.g. A17X or 10023",
+    pinLabel:"PIN (4 digits)",
+    pinPh:"****",
+    stationPinLabel:"Station PIN (4 digits)",
+    stationPinPh:"****",
+    refresh:"Refresh",
+    accessHint:"Note: On the first login of a user ID, the PIN is stored automatically (encrypted). After that, it must match.",
+
+    selectSlot:"Select washer slot",
+    firstRefreshHint:"Please press “Refresh” first",
+    book:"Book",
+    legend:"Green = free · Blue = running/booked · Red = defect/blocked",
+
+    feedbackIntro:"Feedback is a chat between user & admin. New replies will show as a popup.",
+    loadFeedback:"Load feedback",
+    newMsg:"New message",
+    newMsgPh:"Your message…",
+    send:"Send",
+
+    adminPw:"Admin password",
+    adminPwPh:"initial (if new)",
+    login:"Login",
+    logout:"Logout",
+    adminRefresh:"Refresh admin",
+
+    setStationPin:"Set/change station PIN",
+    changeAdminPw:"Change admin password",
+    washerHours:"Washer slots (hours via checkbox)",
+    dryerDuration:"Dryer duration",
+    daysWindow:"Days window + auto purge",
+    news:"News (“What’s new?”)",
+    machines:"Block/unblock machines + defect",
+    userDefects:"Allow users to report defects",
+    adminChat:"Feedback (admin chat)",
+
+    save:"Save",
+    change:"Change",
+    saveWasherTimes:"Save washer times",
+
+    stationPinLabelAdmin:"Station PIN (4 digits)",
+    newAdminPw:"New admin password",
+    washerDurationFixed:"Washer duration is fixed at 2 hours.",
+    dryerLabel:"Duration",
+    pastDays:"Show past days",
+    futureDays:"Show upcoming days",
+    purgeNote:"We’ll add purge (delete old bookings) cleanly after alpha — logs stay.",
+    newsActive:"Enabled",
+    newsText:"Text",
+    bumpNews:"Increase version (show popup again for everyone)",
+    machinesSave:"Save machines",
+    userDefectEnabled:"Users can report defects",
+    threadsFilterPh:"Filter (user/text)...",
+    deleteSelected:"Delete selected",
+    threadsCsv:"Threads CSV",
+    replyMissing:"Reply missing",
+    logsLoad:"Load logs",
+    logsCsv:"Logs CSV",
+    logsFilterPh:"Filter logs (user/text)…",
+    bookingsLoad:"Load bookings",
+    bookingsCsv:"Bookings CSV",
+    bookingsFilterPh:"Filter bookings (user/machine)…",
+
+    feedbackEnabledLabel:"Enable feedback for users",
+
+    noData:"No data",
+    ready:"Ready",
   }
 };
 let LANG = (localStorage.getItem("wp_lang") || "de");
@@ -432,7 +567,8 @@ function setLang(next){
   LANG = (next==="en" || next==="de") ? next : "de";
   localStorage.setItem("wp_lang", LANG);
   const b = document.getElementById("langToggle");
-  if (b) b.textContent = (LANG==="de" ? "DE" : "EN");
+  if (b) b.textContent = tKey("langShort");
+  document.documentElement.lang = LANG;
   applyI18n();
 }
 function applyI18n(){
@@ -456,12 +592,25 @@ function applyI18n(){
     if (labs[2]) labs[2].textContent = tKey("stationPinLabel");
   }
   const btnRefresh = document.getElementById("btnRefresh"); if (btnRefresh) btnRefresh.textContent = tKey("refresh");
+  // placeholders + hint
+  const room = document.getElementById("room"); if (room) room.placeholder = tKey("userIdPh");
+  const pin = document.getElementById("pin"); if (pin) pin.placeholder = tKey("pinPh");
+  const sp = document.getElementById("stationPin"); if (sp) sp.placeholder = tKey("stationPinPh");
+  const accessHint = document.querySelector("#cardAccess .small"); if (accessHint) accessHint.textContent = tKey("accessHint");
+
   // booking
   const bookCard = document.getElementById("slotSelect")?.closest(".card");
   if (bookCard){
     const labs = bookCard.querySelectorAll("label"); if (labs[0]) labs[0].textContent = tKey("selectSlot");
   }
   const btnBookWasher = document.getElementById("btnBookWasher"); if (btnBookWasher) btnBookWasher.textContent = tKey("book");
+  const slotSel = document.getElementById("slotSelect");
+  if (slotSel && slotSel.options && slotSel.options.length){
+    // first option is the initial hint
+    slotSel.options[0].textContent = tKey("firstRefreshHint");
+    if (slotSel.options.length>1 && slotSel.options[1].value===""){} // no-op
+  }
+
   // overview legend
   const ovCard = document.getElementById("tiles")?.closest(".card");
   if (ovCard){ const small = ovCard.querySelector(".small"); if (small) small.textContent = tKey("legend"); }
@@ -472,10 +621,12 @@ function applyI18n(){
     const btnLoad = document.getElementById("btnLoadFeedback"); if (btnLoad) btnLoad.textContent = tKey("loadFeedback");
     const lab = fbCard.querySelectorAll("label"); if (lab[0]) lab[0].textContent = tKey("newMsg");
     const btnSend = document.getElementById("btnSendFeedback"); if (btnSend) btnSend.textContent = tKey("send");
+    const fbText = document.getElementById("feedbackText"); if (fbText) fbText.placeholder = tKey("newMsgPh");
   }
   // admin basic buttons/labels
   const admin = document.getElementById("adminBox")?.closest(".card");
   const labAdminPw = document.querySelector("#adminLoginBox label"); if (labAdminPw) labAdminPw.textContent = tKey("adminPw");
+  const adminPw = document.getElementById("adminPw"); if (adminPw) adminPw.placeholder = tKey("adminPwPh");
   const btnAdminLogin = document.getElementById("btnAdminLogin"); if (btnAdminLogin) btnAdminLogin.textContent = tKey("login");
   const btnAdminLogout = document.getElementById("btnAdminLogout"); if (btnAdminLogout) btnAdminLogout.textContent = tKey("logout");
   const btnAdminReload = document.getElementById("btnAdminReload"); if (btnAdminReload) btnAdminReload.textContent = tKey("adminRefresh");
@@ -497,10 +648,61 @@ function applyI18n(){
   const btnAdminExportLogsCSV = document.getElementById("btnAdminExportLogsCSV"); if (btnAdminExportLogsCSV) btnAdminExportLogsCSV.textContent = tKey("logsCsv");
   const btnAdminLoadBookings = document.getElementById("btnAdminLoadBookings"); if (btnAdminLoadBookings) btnAdminLoadBookings.textContent = tKey("loadBookings");
   const btnAdminExportBookingsCSV = document.getElementById("btnAdminExportBookingsCSV"); if (btnAdminExportBookingsCSV) btnAdminExportBookingsCSV.textContent = tKey("bookingsCsv");
+  const thrFilter = document.getElementById("adminThreadFilter"); if (thrFilter) thrFilter.placeholder = tKey("threadsFilterPh");
+  const btnDelSel = document.getElementById("btnAdminDeleteSelectedThreads"); if (btnDelSel) btnDelSel.textContent = tKey("deleteSelected");
+  const btnThrCsv = document.getElementById("btnAdminExportThreadsCSV"); if (btnThrCsv) btnThrCsv.textContent = tKey("threadsCsv");
+
+  const logsFilter = document.getElementById("adminLogsFilter"); if (logsFilter) logsFilter.placeholder = tKey("logsFilterPh");
+  const bookingsFilter = document.getElementById("adminBookingsFilter"); if (bookingsFilter) bookingsFilter.placeholder = tKey("bookingsFilterPh");
+
+  // admin misc labels inside details (best-effort)
+  const labStationPin = document.querySelector('label[for="adminStationPin"]') || (document.getElementById("adminStationPin")?.previousElementSibling);
+  if (labStationPin && labStationPin.tagName==="LABEL") labStationPin.textContent = tKey("stationPinLabelAdmin");
+
+  const labNewAdminPw = document.getElementById("adminNewPw")?.previousElementSibling;
+  if (labNewAdminPw && labNewAdminPw.tagName==="LABEL") labNewAdminPw.textContent = tKey("newAdminPw");
+
+  const washerNote = document.getElementById("washerHoursBox")?.previousElementSibling;
+  if (washerNote && washerNote.classList?.contains("small")) washerNote.textContent = tKey("washerDurationFixed");
+
+  const dryerLab = document.getElementById("dryerMinutes")?.previousElementSibling;
+  if (dryerLab && dryerLab.tagName==="LABEL") dryerLab.textContent = tKey("dryerLabel");
+
+  const labDaysPast = document.getElementById("daysPast")?.previousElementSibling;
+  if (labDaysPast && labDaysPast.tagName==="LABEL") labDaysPast.textContent = tKey("pastDays");
+  const labDaysFuture = document.getElementById("daysFuture")?.previousElementSibling;
+  if (labDaysFuture && labDaysFuture.tagName==="LABEL") labDaysFuture.textContent = tKey("futureDays");
+
+  const purgeNote = document.getElementById("btnSaveDaysWindow")?.nextElementSibling;
+  if (purgeNote && purgeNote.classList?.contains("small")) purgeNote.textContent = tKey("purgeNote");
+
+  const newsEnabledLab = document.getElementById("newsEnabled")?.parentElement;
+  if (newsEnabledLab && newsEnabledLab.tagName==="LABEL") {
+    newsEnabledLab.childNodes.forEach(n=>{ if (n.nodeType===3) n.textContent = " " + tKey("newsActive"); });
+  }
+  const newsTextLab = document.getElementById("newsText")?.previousElementSibling;
+  if (newsTextLab && newsTextLab.tagName==="LABEL") newsTextLab.textContent = tKey("newsText");
+  const bumpLab = document.getElementById("bumpNewsVersion")?.parentElement;
+  if (bumpLab && bumpLab.tagName==="LABEL") {
+    bumpLab.childNodes.forEach(n=>{ if (n.nodeType===3) n.textContent = " " + tKey("bumpNews"); });
+  }
+
+  const userDefectLab = document.getElementById("userDefectEnabled")?.parentElement;
+  if (userDefectLab && userDefectLab.tagName==="LABEL") {
+    userDefectLab.childNodes.forEach(n=>{ if (n.nodeType===3) n.textContent = " " + tKey("userDefectEnabled"); });
+  }
+
+  const fbEnabledLab = document.getElementById("feedbackEnabled")?.parentElement;
+  if (fbEnabledLab && fbEnabledLab.tagName==="LABEL") {
+    fbEnabledLab.childNodes.forEach(n=>{ if (n.nodeType===3) n.textContent = " " + tKey("feedbackEnabledLabel"); });
+  }
+
 }
 // Translate toasts/alerts best-effort
 const MSG_EN = {
+  // common toasts
   "✅ Gebucht":"✅ Booked",
+  "✅ Gebucht!":"✅ Booked!",
   "⛔ Buchen fehlgeschlagen":"⛔ Booking failed",
   "✅ Freigegeben":"✅ Released",
   "⛔ Freigeben fehlgeschlagen":"⛔ Release failed",
@@ -509,6 +711,9 @@ const MSG_EN = {
   "⛔ Storno nicht möglich":"⛔ Cancel not possible",
   "✅ Storniert":"✅ Cancelled",
   "⛔ Bitte Slot wählen":"⛔ Please select a slot",
+  "Bitte Slot auswählen":"Please select a slot",
+  "⛔ Bitte Slot wählen":"⛔ Please select a slot",
+  "⛔ Bitte Slot wählen":"⛔ Please select a slot",
   "⛔ Ungültiger Slot":"⛔ Invalid slot",
   "✅ Gespeichert":"✅ Saved",
   "⛔ Konnte nicht speichern":"⛔ Could not save",
@@ -516,7 +721,58 @@ const MSG_EN = {
   "✅ Als gelesen markiert":"✅ Marked as read",
   "⛔ Nicht möglich":"⛔ Not possible",
   "⛔ PIN falsch":"⛔ Wrong PIN",
-  "Admin-Bereich freigeschaltet":"Admin unlocked"
+  "✅ Gesendet":"✅ Sent",
+  "⛔ Feedback senden fehlgeschlagen":"⛔ Failed to send feedback",
+  "✅ Logout":"✅ Logout",
+  "✅ Bereit":"✅ Ready",
+  "Bitte Zugang eingeben":"Please enter access data",
+  "Bitte Zugang vollständig eingeben":"Please enter all access data",
+  "Admin Session abgelaufen":"Admin session expired",
+  "Admin Passwort fehlt":"Admin password missing",
+  "✅ Admin Login OK":"✅ Admin login OK",
+  "⛔ Admin Login forbidden":"⛔ Admin login forbidden",
+  "⛔ Admin Daten laden fehlgeschlagen":"⛔ Failed to load admin data",
+  "⛔ Bitte erst Admin-Login":"⛔ Please login as admin first",
+  "⛔ Keine Daten":"⛔ No data",
+  "⛔ Keine Threads gewählt":"⛔ No threads selected",
+  "✅ Threads gelöscht":"✅ Threads deleted",
+  "✅ CSV exportiert":"✅ CSV exported",
+  "⛔ Keine Threads zum Export":"⛔ No threads to export",
+  "Antwort fehlt":"Reply missing",
+  "✅ Antwort gesendet":"✅ Reply sent",
+  "⛔ Senden fehlgeschlagen":"⛔ Sending failed",
+  "✅ Thread gelöscht":"✅ Thread deleted",
+  "✅ Feedback-Einstellung gespeichert":"✅ Feedback setting saved",
+  "⛔ Fehler beim Speichern":"⛔ Error while saving",
+  "✅ Stations-PIN gespeichert":"✅ Station PIN saved",
+  "✅ Admin Passwort geändert":"✅ Admin password changed",
+  "⛔ Fehler beim Ändern":"⛔ Error while changing",
+  "✅ Waschzeiten gespeichert":"✅ Washer times saved",
+  "✅ Trockner-Dauer gespeichert":"✅ Dryer duration saved",
+  "✅ Tage-Fenster gespeichert":"✅ Days window saved",
+  "✅ News gespeichert":"✅ News saved",
+  "✅ Maschinen gespeichert":"✅ Machines saved",
+  "✅ Defekt-Regeln gespeichert":"✅ Defect rules saved",
+  "ℹ️ Feedback ist deaktiviert":"ℹ️ Feedback is disabled",
+  "🔓 Admin-Bereich freigeschaltet":"🔓 Admin unlocked",
+  "⚠️ Worker nicht erreichbar – API_BASE prüfen":"⚠️ Worker not reachable – check API_BASE",
+
+  // alerts / confirms
+  "📢 Neue Info:
+
+":"📢 New info:
+
+",
+  "💬 Neue Nachricht im Feedback vorhanden.":"💬 There is a new feedback message.",
+  "💬 Neues Feedback vom Admin vorhanden.":"💬 New feedback from the admin is available.",
+  "Überbuchen nur wenn bestätigt:
+
+Die Wäsche vom Vorgänger ist sauber und vorsichtig im Korb oben/nebendran abgelegt.":
+    "Overbook only if confirmed:
+
+The previous user's laundry is clean and has been placed carefully in the basket on/next to the machine.",
+  "Admin-Storno wirklich ausführen?":"Really perform admin cancel?",
+  "Thread wirklich löschen?":"Really delete thread?"
 };
 function trMsg(msg){
   if (LANG==="de") return msg;
@@ -525,6 +781,8 @@ function trMsg(msg){
 // patch alert to translate known messages
 const __alert = window.alert.bind(window);
 window.alert = (m)=> __alert(trMsg(String(m)));
+const __confirm = window.confirm.bind(window);
+window.confirm = (m)=> __confirm(trMsg(String(m)));
 
 // ---------- UI helpers ----------
 const $ = (id)=>document.getElementById(id);
@@ -563,7 +821,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
 });
 function fmtDT(ms){
   const d = new Date(ms);
-  return d.toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
+  return d.toLocaleString(LANG==="de" ? "de-DE" : "en-GB", { timeZone: "Europe/Berlin" });
 }
 
 function esc(v){
@@ -577,11 +835,11 @@ function esc(v){
 
 function fmtTime(ms){
   const d = new Date(ms);
-  return d.toLocaleTimeString("de-DE", { timeZone: "Europe/Berlin", hour:"2-digit", minute:"2-digit" });
+  return d.toLocaleTimeString(LANG==="de" ? "de-DE" : "en-GB", { timeZone: "Europe/Berlin", hour:"2-digit", minute:"2-digit" });
 }
 function fmtDate(ms){
   const d = new Date(ms);
-  return d.toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" });
+  return d.toLocaleDateString(LANG==="de" ? "de-DE" : "en-GB", { timeZone: "Europe/Berlin" });
 }
 function confirm2(step1, step2){
   if (!confirm(step1)) return false;
