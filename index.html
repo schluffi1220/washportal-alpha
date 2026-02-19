@@ -625,8 +625,34 @@ function setLang(next){
   const b = document.getElementById("langToggle");
   if (b) b.textContent = tKey("langShort");
   document.documentElement.lang = LANG;
+
+  // update all static labels / placeholders
   applyI18n();
-renderLangToggle();
+  renderLangToggle();
+
+  // re-render dynamic UI in the new language (tiles, dropdowns, hints, etc.)
+  try{
+    if (STATE && (STATE.ok || STATE.config || (STATE.machines && STATE.machines.length) || (STATE.bookings && STATE.bookings.length))){
+      renderSlotDropdown();
+      renderTiles();
+      renderMyBookings();
+      // feedback list text (if open)
+      // Only re-render the visible "no thread/disabled" texts; messages themselves stay as-is.
+      if (document.getElementById("feedbackList")) {
+        // reload just updates the "no thread/disabled" message in correct language if applicable
+        // Avoid network call here.
+      }
+      renderNewsBox();
+    } else {
+      // still update placeholder options if page is in "not refreshed yet" state
+      const sel = document.getElementById("slotSelect");
+      if (sel && sel.options && sel.options.length){
+        sel.options[0].text = tKey("pressRefreshFirst");
+      }
+    }
+  }catch(e){
+    // never break language switch
+  }
 }
 function applyI18n(){
   // header
