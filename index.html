@@ -2014,7 +2014,6 @@ $("btnBookWasher").onclick = async ()=>{
   const c = getCreds();
   const v = $("slotSelect").value;
   if (!c.room || !c.pin || !c.stationPin) return toast("Bitte Zugang eingeben");
-  if (STATE && STATE.config && STATE.config.feedbackEnabled === false) return toast("ℹ️ Feedback ist deaktiviert");
   if (!v) return toast("Bitte Slot auswählen");
 
   const slot = JSON.parse(v);
